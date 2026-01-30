@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/prometheus-operator/prometheus-operator
-    targetRevision: v0.77.2
-    path: example/prometheus-operator-crd
+    repoURL: https://github.com/prometheus-community/helm-charts
+    targetRevision: kube-prometheus-stack-72.6.2
+    path: charts/kube-prometheus-stack/charts/crds
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
