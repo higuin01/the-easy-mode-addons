@@ -20,7 +20,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - Replace=true
+      - RespectIgnoreDifferences=true
     automated:
       prune: true
       selfHeal: true
@@ -33,3 +33,15 @@ spec:
     kind: ValidatingWebhookConfiguration
     jqPathExpressions:
     - .webhooks[]?.clientConfig.caBundle
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: prometheus-kube-prometheus-admission
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+    name: prometheus-kube-prometheus-admission
+  - group: rbac.authorization.k8s.io
+    kind: Role
+    name: prometheus-kube-prometheus-admission
+  - group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    name: prometheus-kube-prometheus-admission
