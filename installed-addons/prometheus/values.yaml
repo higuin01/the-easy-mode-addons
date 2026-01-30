@@ -1,49 +1,44 @@
-prometheus:
-  prometheusSpec:
-    maximumStartupDurationSeconds: 300
-    retention: 30d
-    storageSpec:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: local-path
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 10Gi
-grafana:
-  enabled: true
-  ingress:
-    enabled: false  # você mesmo vai criar seu ingress
-  grafana.ini:
-    server:
-      protocol: http  # força HTTP dentro do pod
-      http_port: 3000
-      root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
-    # Enable tracing
-    tracing.opentelemetry.otlp:
-      address: otel-collector-collector.monitoring.svc.cluster.local:4317
-      propagation: jaeger
-  service:
-    type: ClusterIP  # só para comunicação interna, não expõe direto
-  persistence:
+kube-prometheus-stack:
+  crds:
     enabled: true
-    storageClassName: local-path
-    size: 5Gi
   
-  adminPassword: admin123
+  prometheus:
+    prometheusSpec:
+      maximumStartupDurationSeconds: 300
+      retention: 30d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
   
-  # Environment variables for tracing
-  env:
-    GF_TRACING_OPENTELEMETRY_OTLP_ADDRESS: "otel-collector-collector.monitoring.svc.cluster.local:4317"
-    GF_TRACING_OPENTELEMETRY_OTLP_PROPAGATION: "jaeger"
-
-alertmanager:
-  alertmanagerSpec:
-    storage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: local-path
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 5Gi
+  grafana:
+    enabled: true
+    ingress:
+      enabled: false
+    grafana.ini:
+      server:
+        protocol: http
+        http_port: 3000
+        root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+    service:
+      type: ClusterIP
+    persistence:
+      enabled: true
+      storageClassName: local-path
+      size: 5Gi
+    adminPassword: admin123
+  
+  alertmanager:
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
