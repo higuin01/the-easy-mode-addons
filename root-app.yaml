@@ -1,18 +1,37 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: addons-root
+  name: addons-root-set
   namespace: argocd
 spec:
-  project: default
-  source:
-    repoURL: https://github.com/higuin01/the-easy-mode-addons
-    targetRevision: main
-    path: installed-addons/argocd-apps
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: argocd
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  generators:
+    - git:
+        repoURL: 'https://github.com'
+        revision: main
+        directories:
+          # Busca todas as subpastas dentro de installed-addons
+          - path: installed-addons/*
+          # Exclui a pasta antiga para não tentar criar um app a partir dela
+          - path: installed-addons/argocd-apps
+            exclude: true
+  template:
+    metadata:
+      # Gera dinamicamente nomes como: addon-prometheus, addon-ingress-nginx
+      name: 'addon-{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com'
+        targetRevision: main
+        path: '{{path}}' # Aponta para o caminho da pasta encontrada (ex: installed-addons/prometheus)
+      destination:
+        server: 'https://kubernetes.default.svc'
+        # Define o namespace padrão igual ao nome da pasta ou mude para 'argocd' se preferir centralizar
+        namespace: '{{path.basename}}' 
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
