@@ -1,9 +1,9 @@
 opentelemetry-operator:
   manager:
-    featureGates: "+operator.autoinstrumentation.multi-instrumentation"
     env:
-      - name: OTEL_RESOURCE_ATTRIBUTES
-        value: "service.name=opentelemetry-operator"
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=opentelemetry-operator"
+    extraArgs:
+      - --enable-multi-instrumentation
     resources:
       requests:
         cpu: 100m
@@ -11,15 +11,6 @@ opentelemetry-operator:
       limits:
         cpu: 200m
         memory: 256Mi
-
-  kubeRBACProxy:
-    resources:
-      requests:
-        cpu: 50m
-        memory: 64Mi
-      limits:
-        cpu: 100m
-        memory: 128Mi
 
   admissionWebhooks:
     certManager:
