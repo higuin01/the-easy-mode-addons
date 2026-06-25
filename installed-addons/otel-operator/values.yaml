@@ -1,16 +1,28 @@
-# OpenTelemetry Operator Configuration - Minimal for v0.93.0
-replicaCount: 1
+opentelemetry-operator:
+  manager:
+    featureGates: "+operator.autoinstrumentation.multi-instrumentation"
+    env:
+      - name: OTEL_RESOURCE_ATTRIBUTES
+        value: "service.name=opentelemetry-operator"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
 
-# Manager configuration
-manager:
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  env:
-    ENABLE_WEBHOOKS: "true"
-    # Enable auto-instrumentation across namespaces
-    OTEL_RESOURCE_ATTRIBUTES: "service.name=opentelemetry-operator"
+  kubeRBACProxy:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+  admissionWebhooks:
+    certManager:
+      enabled: false
+    autoGenerateCert:
+      enabled: true
