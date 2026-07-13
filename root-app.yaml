@@ -6,7 +6,7 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: 'https://github.com/higuin01/the-easy-mode-addons'
+        repoURL: 'git@github.com:higuin01/the-easy-mode-addons.git'
         revision: main
         directories:
           - path: installed-addons/*
