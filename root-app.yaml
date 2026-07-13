@@ -16,7 +16,7 @@ spec:
     metadata:
       name: 'addon-{{path.basename}}'
     spec:
-      project: default
+      project: easy-addons
       source:
         repoURL: 'https://github.com/higuin01/the-easy-mode-addons'
         targetRevision: main
