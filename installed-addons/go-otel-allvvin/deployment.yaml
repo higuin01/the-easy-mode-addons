@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-env
+  namespace: otel-lab
+data:
+  OTEL_SERVICE_NAME: "go-otel-allvvin"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-collector.monitoring.svc.cluster.local:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=lab,team=sre"
+  REDIS_ADDR: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-otel-allvvin
+  namespace: otel-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-otel-allvvin
+  template:
+    metadata:
+      labels:
+        app: go-otel-allvvin
+    spec:
+      containers:
+        - name: app
+          image: higor01/go-otel-allvvin:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 50051
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: app-env
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-otel-allvvin
+  namespace: otel-lab
+spec:
+  selector:
+    app: go-otel-allvvin
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: grpc
+      port: 50051
+      targetPort: 50051
