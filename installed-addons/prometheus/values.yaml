@@ -6,6 +6,10 @@ kube-prometheus-stack:
     prometheusSpec:
       maximumStartupDurationSeconds: 300
       retention: 30d
+      securityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+        fsGroup: 0
       resources:
         requests:
           cpu: 200m
