@@ -10,8 +10,6 @@ spec:
         revision: main
         directories:
           - path: installed-addons/*
-          - path: installed-addons/argocd-apps
-            exclude: true
   template:
     metadata:
       name: 'addon-{{path.basename}}'

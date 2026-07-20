@@ -1,103 +1,48 @@
-# OpenTelemetry Collector CRD - Managed by Operator
+# OpenTelemetry Collector
+# wave 2: aplicado após o operator estar pronto
+# mode: statefulset — receptor central de telemetria
+# Pipelines preparados para Tempo (traces), Mimir (metrics) e Loki (logs)
+# Por enquanto exporta via debug — basta descomentar os exporters quando os backends estiverem prontos
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: otel-collector
   namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
-  mode: daemonset
-  
+  mode: statefulset
+  replicas: 1
+
   resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
     requests:
       cpu: 100m
       memory: 128Mi
-  
-  env:
-    - name: KUBE_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
-
-  tolerations:
-    - effect: NoSchedule
-      operator: Exists
-    - effect: NoExecute
-      operator: Exists
-
-  volumeMounts:
-    - name: varlogpods
-      mountPath: /var/log/pods
-      readOnly: true
-    - name: varlibdockercontainers
-      mountPath: /var/lib/docker/containers
-      readOnly: true
-
-  volumes:
-    - name: varlogpods
-      hostPath:
-        path: /var/log/pods
-    - name: varlibdockercontainers
-      hostPath:
-        path: /var/lib/docker/containers
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
   config:
     receivers:
-      # OTLP receiver for modern applications
       otlp:
         protocols:
           grpc:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
-      
-      # Jaeger receiver for legacy applications
-      jaeger:
-        protocols:
-          grpc:
-            endpoint: 0.0.0.0:14250
-          thrift_http:
-            endpoint: 0.0.0.0:14268
-      
-      # Kubernetes logs collection (minimal)
-      filelog:
-        include:
-          - /var/log/pods/*/*/*.log
-        exclude:
-          - /var/log/pods/*/otc-container/*.log
-          - /var/log/pods/monitoring_promtail*/*.log
-          - /var/log/pods/monitoring_otel-collector*/*.log
-        start_at: end
-        include_file_path: true
-        include_file_name: false
-        operators:
-          - type: regex_parser
-            regex: '^[^ ]+ (?P<stream>stdout|stderr) [^ ]* ?(?P<log>.*)$'
-          - type: move
-            from: attributes.log
-            to: body
-          - type: add
-            field: attributes.source
-            value: kubernetes
 
     processors:
       batch:
         timeout: 1s
         send_batch_size: 1024
-      
-      resource:
-        attributes:
-          - key: cluster.name
-            value: "local-k8s"
-            action: insert
-          - key: deployment.environment  
-            value: "development"
-            action: insert
-      
+
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 400
+        spike_limit_mib: 100
+
       k8sattributes:
-        auth_type: "serviceAccount"
+        auth_type: serviceAccount
         passthrough: false
         extract:
           metadata:
@@ -108,29 +53,54 @@ spec:
             - k8s.node.name
             - k8s.pod.start_time
 
+      resource:
+        attributes:
+          - key: cluster.name
+            value: "local-k8s"
+            action: insert
+          - key: deployment.environment
+            value: "development"
+            action: insert
+
     exporters:
-      # Loki for logs (via OTLP HTTP)
-      otlphttp/loki:
-        endpoint: http://loki-gateway.monitoring.svc.cluster.local:3100/otlp/v1/logs
-        tls:
-          insecure: true
-        
-      # Tempo for traces (OTLP native)
-      otlp/tempo:
-        endpoint: http://tempo-distributor.monitoring.svc.cluster.local:4317
-        tls:
-          insecure: true
-          
-      # Debug exporter for troubleshooting
+      # Debug — visualiza toda telemetria no stdout do collector
       debug:
         verbosity: detailed
-        sampling_initial: 5
-        sampling_thereafter: 200
+
+      # Tempo — descomentar quando o Tempo estiver rodando
+      # otlp/tempo:
+      #   endpoint: http://tempo-distributor.monitoring.svc.cluster.local:4317
+      #   tls:
+      #     insecure: true
+
+      # Mimir — descomentar quando o Mimir estiver rodando
+      # prometheusremotewrite/mimir:
+      #   endpoint: http://mimir-nginx.monitoring.svc.cluster.local/api/v1/push
+      #   tls:
+      #     insecure: true
+
+      # Loki — descomentar quando o Loki estiver rodando
+      # otlphttp/loki:
+      #   endpoint: http://loki-gateway.monitoring.svc.cluster.local:3100/otlp/v1/logs
+      #   tls:
+      #     insecure: true
 
     service:
       pipelines:
-        # Pipeline focado em traces primeiro
         traces:
-          receivers: [otlp, jaeger]
-          processors: [k8sattributes, resource, batch]
-          exporters: [otlp/tempo, debug]
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [debug]
+          # exporters: [debug, otlp/tempo]
+
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [debug]
+          # exporters: [debug, prometheusremotewrite/mimir]
+
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [debug]
+          # exporters: [debug, otlphttp/loki]
