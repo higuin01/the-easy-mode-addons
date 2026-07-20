@@ -28,6 +28,12 @@ kube-prometheus-stack:
   
   grafana:
     enabled: true
+    securityContext:
+      runAsUser: 0
+      runAsNonRoot: false
+      fsGroup: 0
+    initChownData:
+      enabled: false
     resources:
       requests:
         cpu: 100m
