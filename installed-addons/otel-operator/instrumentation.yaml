@@ -1,12 +1,8 @@
-# OpenTelemetry Instrumentation CRD - Auto-instrumentation
-# wave 2: aplicado após o operator (wave 1) estar pronto
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
   name: default-instrumentation
   namespace: opentelemetry-operator-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   # Exporter configuration - where to send traces
   exporter:

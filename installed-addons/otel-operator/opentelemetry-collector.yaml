@@ -1,5 +1,4 @@
 # OpenTelemetry Collector
-# wave 2: aplicado após o operator estar pronto
 # mode: statefulset — receptor central de telemetria
 # Pipelines preparados para Tempo (traces), Mimir (metrics) e Loki (logs)
 # Por enquanto exporta via debug — basta descomentar os exporters quando os backends estiverem prontos
@@ -8,8 +7,6 @@ kind: OpenTelemetryCollector
 metadata:
   name: otel-collector
   namespace: monitoring
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   mode: statefulset
   replicas: 1
