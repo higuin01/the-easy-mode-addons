@@ -3,6 +3,8 @@ kind: Instrumentation
 metadata:
   name: default-instrumentation
   namespace: opentelemetry-operator-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   # Exporter configuration - where to send traces
   exporter:
