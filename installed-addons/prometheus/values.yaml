@@ -33,7 +33,22 @@ kube-prometheus-stack:
       runAsNonRoot: false
       fsGroup: 0
     initChownData:
-      enabled: false
+      enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+    sidecar:
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
+      readinessProbe:
+        httpGet:
+          path: /api/health
+          port: 3000
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 10
     resources:
       requests:
         cpu: 100m
@@ -48,6 +63,18 @@ kube-prometheus-stack:
         protocol: http
         http_port: 3000
         root_url: "%(protocol)s://%(domain)s:%(http_port)s/"
+      dataproxy:
+        tls_skip_verify_insecure: true
+      analytics:
+        check_for_updates: false
+        check_for_plugin_updates: false
+        reporting_enabled: false
+      plugins:
+        enable_alpha: false
+      feature_toggles:
+        enable: ""
+      plugin.grafana-lokiexplore-app:
+        disabled: true
     service:
       type: ClusterIP
     persistence:
