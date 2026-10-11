@@ -6,11 +6,11 @@ metrics-server:
 
   resources:
     requests:
-      cpu: 100m
-      memory: 200Mi
+      cpu: 50m
+      memory: 64Mi
     limits:
-      cpu: 200m
-      memory: 300Mi
+      cpu: 150m
+      memory: 192Mi
 
   replicas: 1
 

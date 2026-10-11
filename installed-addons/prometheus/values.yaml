@@ -3,6 +3,13 @@ kube-prometheus-stack:
     enabled: true
 
   prometheusOperator:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -21,6 +28,13 @@ kube-prometheus-stack:
               topologyKey: kubernetes.io/hostname
 
   kube-state-metrics:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -38,10 +52,26 @@ kube-prometheus-stack:
                   app.kubernetes.io/name: kube-state-metrics
               topologyKey: kubernetes.io/hostname
 
+  prometheus-node-exporter:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi
+
   prometheus:
     prometheusSpec:
       maximumStartupDurationSeconds: 300
       retention: 30d
+      resources:
+        requests:
+          cpu: 150m
+          memory: 512Mi
+        limits:
+          cpu: 400m
+          memory: 768Mi
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -54,13 +84,6 @@ kube-prometheus-stack:
         runAsUser: 0
         runAsNonRoot: false
         fsGroup: 0
-      resources:
-        requests:
-          cpu: 200m
-          memory: 512Mi
-        limits:
-          cpu: 500m
-          memory: 1Gi
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -72,6 +95,13 @@ kube-prometheus-stack:
 
   grafana:
     enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 150m
+        memory: 256Mi
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -88,26 +118,29 @@ kube-prometheus-stack:
       enabled: true
       resources:
         requests:
-          cpu: 50m
+          cpu: 10m
           memory: 32Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
     sidecar:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
       dashboards:
         enabled: true
         searchNamespace: ALL
-      readinessProbe:
-        httpGet:
-          path: /api/health
-          port: 3000
-        initialDelaySeconds: 30
-        periodSeconds: 10
-        failureThreshold: 10
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi
+    readinessProbe:
+      httpGet:
+        path: /api/health
+        port: 3000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 10
     ingress:
       enabled: false
     grafana.ini:
@@ -137,6 +170,13 @@ kube-prometheus-stack:
 
   alertmanager:
     alertmanagerSpec:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -145,13 +185,6 @@ kube-prometheus-stack:
                 matchExpressions:
                   - key: node-role.kubernetes.io/control-plane
                     operator: DoesNotExist
-      resources:
-        requests:
-          cpu: 50m
-          memory: 64Mi
-        limits:
-          cpu: 100m
-          memory: 128Mi
       storage:
         volumeClaimTemplate:
           spec:
