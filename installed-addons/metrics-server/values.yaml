@@ -3,7 +3,7 @@ metrics-server:
     - --kubelet-insecure-tls
     - --kubelet-preferred-address-types=InternalIP
     - --metric-resolution=15s
-  
+
   resources:
     requests:
       cpu: 100m
@@ -11,5 +11,22 @@ metrics-server:
     limits:
       cpu: 200m
       memory: 300Mi
-  
+
   replicas: 1
+
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: metrics-server
+            topologyKey: kubernetes.io/hostname

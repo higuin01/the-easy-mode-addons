@@ -25,6 +25,14 @@ spec:
       labels:
         app: go-otel-allvvin
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
       containers:
         - name: app
           image: higor01/go-otel-allvvin:latest

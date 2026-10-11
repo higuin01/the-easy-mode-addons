@@ -1,11 +1,55 @@
 kube-prometheus-stack:
   crds:
     enabled: false
-  
+
+  prometheusOperator:
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: prometheus-operator
+              topologyKey: kubernetes.io/hostname
+
+  kube-state-metrics:
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: kube-state-metrics
+              topologyKey: kubernetes.io/hostname
+
   prometheus:
     prometheusSpec:
       maximumStartupDurationSeconds: 300
       retention: 30d
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
       securityContext:
         runAsUser: 0
         runAsNonRoot: false
@@ -25,9 +69,17 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 10Gi
-  
+
   grafana:
     enabled: true
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
     securityContext:
       runAsUser: 0
       runAsNonRoot: false
@@ -82,9 +134,17 @@ kube-prometheus-stack:
       storageClassName: local-path
       size: 5Gi
     adminPassword: admin123
-  
+
   alertmanager:
     alertmanagerSpec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
       resources:
         requests:
           cpu: 50m

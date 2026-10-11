@@ -11,6 +11,22 @@ opentelemetry-operator:
       limits:
         cpu: 200m
         memory: 256Mi
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: opentelemetry-operator
+              topologyKey: kubernetes.io/hostname
 
   admissionWebhooks:
     certManager:
